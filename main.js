@@ -1,8 +1,9 @@
 import TelegramBot from "node-telegram-bot-api";
 import timetable from "./middlewares/timetable.js";
+import { config } from "dotenv";
+config();
 
-const token = "6681571421:AAF-tw6i-HH5PkeGIWk0MlD3EStvzjguPCA";
-const bot = new TelegramBot(token, { polling: true });
+const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
