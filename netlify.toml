@@ -1,6 +1,6 @@
 [build]
   functions = "functions"
-  command = "netlify-lambda install && mkdir ./public"
+  command = "npm run start:lambda && mkdir ./public"
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
