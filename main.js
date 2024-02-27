@@ -3,7 +3,7 @@ import timetable from "./middlewares/timetable.js";
 import { config } from "dotenv";
 config();
 
-const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+const bot = new TelegramBot("6681571421:AAF-tw6i-HH5PkeGIWk0MlD3EStvzjguPCA", { polling: true });
 
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
