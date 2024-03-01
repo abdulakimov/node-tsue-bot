@@ -1,7 +1,6 @@
 import puppeteer from "puppeteer";
 import select from "puppeteer-select";
-// const chromium = require("@sparticuz/chromium.js");
-import chromium from "@sparticuz/chromium.js";
+import { args, defaultViewport, executablePath, headless } from "@sparticuz/chromium-min"
 
 async function timetable({ className }) {
     let browser;
@@ -14,10 +13,10 @@ async function timetable({ className }) {
     try {
         // lounch browser
         browser = await puppeteer.launch({
-            args: chromium.args,
-            defaultViewport: chromium.defaultViewport,
-            executablePath: await chromium.executablePath(),
-            headless: chromium.headless
+            args: args,
+            defaultViewport: defaultViewport,
+            executablePath: await executablePath(),
+            headless: headless
         });
         const page = await browser.newPage();
 
