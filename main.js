@@ -1,25 +1,185 @@
-import TelegramBot from "node-telegram-bot-api";
+import { Telegraf, session, Scenes } from "telegraf";
 import timetable from "./middlewares/timetable.js";
 import { config } from "dotenv";
 config();
+const bot = new Telegraf(process.env.BOT_TOKEN);
 
-const bot = new TelegramBot("6681571421:AAF-tw6i-HH5PkeGIWk0MlD3EStvzjguPCA", { polling: true });
+const classNameScene = new Scenes.BaseScene("classNameScene");
 
-bot.onText(/\/start/, (msg) => {
-    const chatId = msg.chat.id;
-    bot.sendMessage(chatId, "Welcome to your timetable bot, /timetable");
+classNameScene.enter((ctx) => {
+  ctx.replyWithHTML(`<b>Qaysi guruhning dars jadvalini bilmoqchisiz? \n\n📌Eslatma: </b>\n<i>Guruhingizni "ST-63" kabi yozing!</i>`, {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: "🔙 Orqaga",
+            callback_data: "back",
+          }
+        ]
+      ],
+    },
+
+  });
+});
+
+classNameScene.leave((ctx) => {
+  if (ctx.session.className !== undefined) {
+    ctx.replyWithHTML(`<b>${ctx.session.className} guruhining dars jadvali yuklanmoqda. \n\nIltimos kutib turing...</b>`);
+  }
+});
+
+classNameScene.on("text", async (ctx) => {
+
+  ctx.session.className = ctx.message.text;
+
+  console.log(ctx.session.className);
+  //check if className is like AA-00 or Aa-00 or aa-00 or aA-00 or AAA-00 or AAa-00 or aAA-00 or AaA-00 or aaa-00
+  const classNameRegex = /^[a-zA-Z]{1,3}-\d{2}$/;
+  if (classNameRegex.test(ctx.session.className)) {
+    ctx.scene.leave();
+    await
+      timetable({ className: ctx.session.className })
+
+    ctx.replyWithDocument({
+      source: `./sources/${ctx.session.className}.pdf`,
+    }, {
+      caption: `<i>📌${ctx.session.className} guruhining dars jadvali\n\nBoshqa guruh dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i>`,
+      parse_mode: "HTML",
+    })
+    ctx.deleteMessage(ctx.message.message_id + 1);
+  } else {
+    ctx.replyWithHTML("<b>❌Noto'g'ri formatda kiritdingiz. \n\nIltimos, qaytadan urinib ko'ring!</b>");
+  }
+
+});
+
+bot.use(session());
+const stage = new Scenes.Stage([classNameScene]);
+bot.use(stage.middleware());
+
+bot.on("message", async (ctx) => {
+  const channel = "@misterxurshidbek";
+  const chatMember = await ctx.telegram.getChatMember(channel, ctx.message.from.id);
+  const isSubscribed = ["creator", "administrator", "member"].includes(chatMember.status);
+
+  try {
+    if (!isSubscribed) {
+      await ctx.replyWithHTML(`<b>Assalomu alaykum <a href='tg://user?id=${ctx.from.id}'>${ctx.from.first_name}</a> 😊 \nAfsuski, siz bizning kanalimizga a'zo bo'lmagansiz ☹️ Botdan foydalanish uchun pastdagi havola orqali kanalga a'zo bo'lib ✅ Tasdiqlash tugmasini bosing va\nqaytadan /start buyrug'ini jo'nating 😉</b>`, {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: "📢 Kanalga obuna bo'lish",
+                url: `https://t.me/${channel.replace("@", "")}`,
+              },
+            ],
+            [
+              {
+                text: "✅ Tasdiqlash",
+                callback_data: "check",
+              }
+            ]
+          ],
+        },
+      });
+
+    } else {
+      if (ctx.message.text === "/start" && "🔙 Orqaga") {
+        await ctx.replyWithHTML(`<b>Assalomu alaykum <a href='tg://user?id=${ctx.from.id}'>${ctx.from.first_name}</a> 😊\n \nSizga yordam bera olishim uchun pastdagi buyruqlardan birini tanlang 👇</b>`, {
+          reply_markup: {
+            resize_keyboard: true,
+            keyboard: [
+              ["📅 Dars jadvali", "📞 Aloqa"],
+              ["📝 Qo'shimcha malumot"],
+            ],
+          }
+        });
+      }
+
+      if (ctx.message.text === "📅 Dars jadvali") {
+        ctx.scene.enter("classNameScene");
+      }
+
+      if (ctx.message.text === "📞 Aloqa") {
+        await ctx.replyWithHTML(`<i>🧑‍💻Shikoyatlar, dasturdagi xatoliklar va taklif uchun quyidagi manzillar orqali bog'lanishigiz mumkin:\n\n☎️ Telefon: +998-99-768-30-09\n\n✈️ Telegram: @mister_xurshidbey</i>`, {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: "✈️ Telegram",
+                  url: "https://t.me/mister_xurshidbey",
+                },
+
+              ],
+              [
+                {
+                  text: "🔙 Orqaga",
+                  callback_data: "back",
+                }
+              ]
+            ],
+          },
+        });
+      }
+
+      if (ctx.message.text === "📝 Qo'shimcha malumot") {
+        await ctx.replyWithHTML(`<i>📌 Ushbu bot Raqamli Iqtisodiyot Fakulteti uchun maxsus yaratilgan!\n\n🧑‍💻 Dasturchi: @mister_xurshidbey\n\n📢 Kanal: @rif_tdiu</i>`, {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: "🔙 Orqaga",
+                  callback_data: "back"
+                }
+              ]
+            ],
+          },
+
+        })
+      }
+
+    }
+
+  } catch (error) {
+
+  }
+
+
+});
+
+bot.action("check", async (ctx) => {
+  const channel = "@misterxurshidbek";
+  const chatMember = await ctx.telegram.getChatMember(channel, ctx.from.id);
+  const isSubscribed = await ["creator", "administrator", "member"].includes(chatMember.status);
+
+  if (isSubscribed) {
+    //delete last message and welcome message
+    await ctx.deleteMessage(
+      ctx.callbackQuery.message.message_id
+
+    );
+    ctx.replyWithHTML("<i>Tabriklayman 😊 Siz kanalimizga a'zo bo'ldingiz 🎉. \n\nBotdan foydalanish uchun /start buyrug'ini jo'nating 😉</i>");
+  } else {
+    ctx.replyWithHTML("<i>Siz kanalga a'zo bo'lmadingiz 😔. \n\nIltimos, kanalga a'zo bo'lib qaytadan /start buyrug'ini jo'nating.</i>");
+  }
+});
+
+bot.action("back", async (ctx) => {
+  ctx.scene.leave();
+  await ctx.deleteMessage(
+    ctx.callbackQuery.message.message_id
+  );
+  await ctx.replyWithHTML(`<b>Assalomu alaykum <a href='tg://user?id=${ctx.from.id}'>${ctx.from.first_name}</a> 😊\n \nSizga yordam bera olishim uchun pastdagi buyruqlardan birini tanlang 👇</b>`, {
+    reply_markup: {
+      resize_keyboard: true,
+      keyboard: [
+        ["📅 Dars jadvali", "📞 Aloqa"],
+        ["📝 Qo'shimcha malumot"],
+      ],
+    }
+  });
 }
 );
 
-//on /timetable command ask for class name, and then create timetable for that class name and send it to user and dott receive any message 
-bot.onText(/\/timetable/, (msg) => {
-    const chatId = msg.chat.id;
-    bot.sendMessage(chatId, "Please enter your class name");
-    bot.once('message', async (msg) => {
-        const className = msg.text;
-        bot.sendMessage(chatId, `Creating timetable for ${className}`);
-        await timetable({ className });
-        bot.sendDocument(chatId, `./source/${className}.pdf`);
-    });
-}
-);
+
+bot.launch();

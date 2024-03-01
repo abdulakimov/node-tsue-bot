@@ -26,15 +26,17 @@ async function timetable({ className }) {
         //click to the span to open
         await page.click("span[title='Классы']");
 
-        //click to the a text content equals to ST-63-22
+        //get the element by class name and chek if it is exist or not
         const element = await select(page).getElement(`a:contains(${className.toUpperCase()})`);
+
+        //click to the element
         await element.click();
 
         //delay to 1 second
-        await delay(1000);
+        await delay(400);
 
         // take pdf and save it to ../source folder
-        await page.pdf({ path: `./source/${className}.pdf`, pageRanges: '1', printBackground: true, width: '800px', height: '800px' });
+        await page.pdf({ path: `./sources/${className}.pdf`, pageRanges: '1', printBackground: true, width: '800px', height: '800px' });
 
         console.log('timetable created');
 
