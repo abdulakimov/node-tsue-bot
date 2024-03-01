@@ -1,7 +1,11 @@
 import { Telegraf, session, Scenes } from "telegraf";
 import timetable from "./middlewares/timetable.js";
+import mongoose from "mongoose";
 import { config } from "dotenv";
+import Users from "./models/userModel.js";
 config();
+
+
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 const classNameScene = new Scenes.BaseScene("classNameScene");
@@ -62,6 +66,18 @@ bot.on("message", async (ctx) => {
   const chatMember = await ctx.telegram.getChatMember(channel, ctx.message.from.id);
   const isSubscribed = ["creator", "administrator", "member"].includes(chatMember.status);
 
+  //check if user exists in database with telegram id
+  const user = await Users.findOne({ id: ctx.from.id });
+  if (!user) {
+    await Users.create({
+      id: ctx.from.id,
+      firstname: ctx.from.first_name,
+      username: ctx.from.username,
+    });
+
+  }
+
+
   try {
     if (!isSubscribed) {
       await ctx.replyWithHTML(`<b>Assalomu alaykum <a href='tg://user?id=${ctx.from.id}'>${ctx.from.first_name}</a> 😊 \nAfsuski, siz bizning kanalimizga a'zo bo'lmagansiz ☹️ Botdan foydalanish uchun pastdagi havola orqali kanalga a'zo bo'lib ✅ Tasdiqlash tugmasini bosing va\nqaytadan /start buyrug'ini jo'nating 😉</b>`, {
@@ -90,7 +106,7 @@ bot.on("message", async (ctx) => {
             resize_keyboard: true,
             keyboard: [
               ["📅 Dars jadvali", "📞 Aloqa"],
-              ["📝 Qo'shimcha malumot"],
+              ["📝 Ma'lumot", "📊 Statistika"],
             ],
           }
         });
@@ -122,7 +138,7 @@ bot.on("message", async (ctx) => {
         });
       }
 
-      if (ctx.message.text === "📝 Qo'shimcha malumot") {
+      if (ctx.message.text === "📝 Ma'lumot") {
         await ctx.replyWithHTML(`<i>📌 Ushbu bot Raqamli Iqtisodiyot Fakulteti uchun maxsus yaratilgan!\n\n🧑‍💻 Dasturchi: @mister_xurshidbey\n\n📢 Kanal: @rif_tdiu</i>`, {
           reply_markup: {
             inline_keyboard: [
@@ -138,6 +154,22 @@ bot.on("message", async (ctx) => {
         })
       }
 
+      if (ctx.message.text === "📊 Statistika") {
+        const users = await Users.find();
+        const usersCount = users.length;
+        await ctx.replyWithHTML(`<i>📊 Botimiz foydalanuvchilari soni: <b>${usersCount}</b></i>`, {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: "🔙 Orqaga",
+                  callback_data: "back",
+                }
+              ]
+            ],
+          },
+        });
+      }
     }
 
   } catch (error) {
@@ -174,12 +206,14 @@ bot.action("back", async (ctx) => {
       resize_keyboard: true,
       keyboard: [
         ["📅 Dars jadvali", "📞 Aloqa"],
-        ["📝 Qo'shimcha malumot"],
+        ["📝 Ma'lumot", "📊 Statistika"],
       ],
     }
   });
 }
 );
+
+mongoose.connect(process.env.MONGO_URL).then(() => { console.log("MongoDB connected..."); }).catch((err) => console.log(err));
 
 
 bot.launch();
