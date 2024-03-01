@@ -1,5 +1,6 @@
 import puppeteer from "puppeteer";
 import select from "puppeteer-select";
+const chromium = require("@sparticuz/chromium");
 
 async function timetable({ className }) {
     let browser;
@@ -11,7 +12,12 @@ async function timetable({ className }) {
 
     try {
         // lounch browser
-        browser = await puppeteer.launch();
+        browser = await puppeteer.launch({
+            args: chromium.args,
+            defaultViewport: chromium.defaultViewport,
+            executablePath: await chromium.executablePath(),
+            headless: chromium.headless
+        });
         const page = await browser.newPage();
 
         // set viewport
