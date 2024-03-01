@@ -1,6 +1,6 @@
 import puppeteer from "puppeteer";
 import select from "puppeteer-select";
-const chromium = require("@sparticuz/chromium");
+const chromium = require("@sparticuz/chromium.js");
 
 async function timetable({ className }) {
     let browser;
