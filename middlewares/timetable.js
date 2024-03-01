@@ -1,6 +1,5 @@
 import puppeteer from "puppeteer";
 import select from "puppeteer-select";
-import { args, defaultViewport, executablePath, headless } from "@sparticuz/chromium-min"
 
 async function timetable({ className }) {
     let browser;
@@ -13,10 +12,7 @@ async function timetable({ className }) {
     try {
         // lounch browser
         browser = await puppeteer.launch({
-            args: args,
-            defaultViewport: defaultViewport,
-            executablePath: await executablePath(),
-            headless: headless
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
         const page = await browser.newPage();
 
