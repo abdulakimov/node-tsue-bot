@@ -62,7 +62,7 @@ const stage = new Scenes.Stage([classNameScene]);
 bot.use(stage.middleware());
 
 bot.on("message", async (ctx) => {
-  const channel = "@misterxurshidbek";
+  const channel = "@rif_tdiu";
   const chatMember = await ctx.telegram.getChatMember(channel, ctx.message.from.id);
   const isSubscribed = ["creator", "administrator", "member"].includes(chatMember.status);
 
