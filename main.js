@@ -11,7 +11,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const classNameScene = new Scenes.BaseScene("classNameScene");
 
 classNameScene.enter((ctx) => {
-  ctx.replyWithHTML(`<b>Qaysi guruhning dars jadvalini bilmoqchisiz? \n\n📌Eslatma: </b>\n<i>Guruhingizni "ST-63" kabi yozing!</i>`, {
+  ctx.replyWithHTML(`<b>Qaysi guruhning dars jadvalini bilmoqchisiz? \n\n📌Eslatma: </b>\n<i>Guruhingizni "ST-63" kabi qo'shtirnoqlarsiz yozing!</i>`, {
     reply_markup: {
       inline_keyboard: [
         [
