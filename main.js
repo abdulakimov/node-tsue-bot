@@ -37,13 +37,12 @@ classNameScene.leave((ctx) => {
 const menuItems = ["📅 Dars jadvali", "📞 Aloqa", "📝 Ma'lumot", "📊 Statistika"];
 
 classNameScene.on("text", async (ctx) => {
-  if (!menuItems.includes(ctx.message.text))
-    ctx.session.className = ctx.message.text;
+  ctx.session.className = ctx.message.text;
 
   console.log(ctx.session.className);
-  //check if className is like AA-00 or Aa-00 or aa-00 or aA-00 or AAA-00 or AAa-00 or aAA-00 or AaA-00 or aaa-00
+
   const classNameRegex = /^[a-zA-Z]{1,3}-\d{2}$/;
-  if (classNameRegex.test(ctx.session.className)) {
+  if (classNameRegex.test(ctx.session.className) && !menuItems.includes(ctx.message.text)) {
     ctx.scene.leave();
     await
       timetable({ className: ctx.session.className });
