@@ -12,7 +12,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const classNameScene = new Scenes.BaseScene("classNameScene");
 
 classNameScene.enter((ctx) => {
-  ctx.replyWithHTML(`<b>Qaysi guruhning dars jadvalini bilmoqchisiz? \n\n📌Eslatma: </b>\n<i>Guruhingizni <b>ST-63</b> kabi qo'shtirnoqlarsiz yozing!</i>`, {
+  ctx.replyWithHTML(`<b>Qaysi guruhning dars jadvalini bilmoqchisiz? \n\n📌Eslatma: </b>\n<i>Guruhingizni "ST-63" kabi yozing!</i>`, {
     reply_markup: {
 
       inline_keyboard: [
@@ -50,16 +50,13 @@ classNameScene.on("text", async (ctx) => {
 
     let file = `./sources/${ctx.session.className}.pdf`;
 
-    if (fs.existsSync(file)) {
-      ctx.replyWithDocument({
-        source: file,
-      }, {
-        caption: `<i>📌${ctx.session.className} guruhining dars jadvali\n\nBoshqa guruh dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i>`,
-        parse_mode: "HTML",
-      })
-    } else {
-      ctx.replyWithHTML("<b>❌Dars jadvali topilmadi. \n\nIltimos, guruh nomini to'g'ri kiritganingizga ishonch hosil qilib, qaytadan urinib ko'ring!</b>");
-    }
+    ctx.replyWithDocument({
+      source: `./sources/${ctx.session.className}.pdf`,
+    }, {
+      caption: `<i>📌${ctx.session.className} guruhining dars jadvali\n\nBoshqa guruh dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i>`,
+      parse_mode: "HTML",
+    })
+    ctx.deleteMessage(ctx.message.message_id + 1);
   } else {
     ctx.replyWithHTML("<b>❌Noto'g'ri formatda kiritdingiz. \n\nIltimos, qaytadan urinib ko'ring!</b>");
     //exit from scene

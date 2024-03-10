@@ -43,12 +43,12 @@ async function timetable({ className }) {
 
 
         //delay to 1 second
-        // await delay(400);
+        await delay(400);
 
-        // // take pdf and save it to ../source folder
-        // await page.pdf({ path: `./sources/${className}.pdf`, pageRanges: '1', printBackground: true, width: '800px', height: '800px' });
+        // take pdf and save it to ../source folder
+        await page.pdf({ path: `./sources/${className}.pdf`, pageRanges: '1', printBackground: true, width: '800px', height: '800px' });
 
-        // console.log('timetable created');
+        console.log('timetable created');
 
     } catch (error) {
         console.log("Error: ", error);
