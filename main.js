@@ -60,7 +60,7 @@ classNameScene.on("text", async (ctx) => {
       });
       fs.unlinkSync(file);
     } else {
-      ctx.replyWithHTML("<b>❌Dars jadvali topilmadi. Iltimos, gurh nomini to'g'ri kiritganingizga ishonch hosil qilib, qaytadan urinib ko'ring!</b>");
+      ctx.replyWithHTML("<b>❌Dars jadvali topilmadi. Iltimos, guruh nomini to'g'ri kiritganingizga ishonch hosil qilib, qaytadan urinib ko'ring!</b>");
     }
   } else {
     ctx.replyWithHTML("<b>❌Noto'g'ri formatda kiritdingiz. \n\nIltimos, qaytadan urinib ko'ring!</b>");
