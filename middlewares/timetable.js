@@ -21,7 +21,7 @@ async function timetable({ className }) {
         await page.setViewport({ width: 1080, height: 768 });
 
         //navigate to url
-        await page.goto("https://tsue.edupage.org/timetable/",);
+        await page.goto("https://tsue.edupage.org/timetable/", { waitUntil: "networkidle0", timeout: 0 });
 
         // wait for selector
         await page.waitForSelector("span[title='Классы']");
