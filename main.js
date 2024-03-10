@@ -58,7 +58,6 @@ classNameScene.on("text", async (ctx) => {
         caption: `<i>📌${ctx.session.className} guruhining dars jadvali\n\nBoshqa guruh dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i> \n\n🕒${dateTimeNow} `,
         parse_mode: "HTML",
       });
-      fs.unlinkSync(file);
     } else {
       ctx.replyWithHTML("<b>❌Dars jadvali topilmadi. Iltimos, guruh nomini to'g'ri kiritganingizga ishonch hosil qilib, qaytadan urinib ko'ring!</b>");
     }
