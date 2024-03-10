@@ -50,13 +50,19 @@ classNameScene.on("text", async (ctx) => {
 
     let file = `./sources/${ctx.session.className}.pdf`;
 
-    ctx.replyWithDocument({
-      source: `./sources/${ctx.session.className}.pdf`,
-    }, {
-      caption: `<i>📌${ctx.session.className} guruhining dars jadvali\n\nBoshqa guruh dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i>`,
-      parse_mode: "HTML",
-    })
-    ctx.deleteMessage(ctx.message.message_id + 1);
+    if (fs.existsSync(file)) {
+      ctx.replyWithDocument({
+        source: `./sources/${ctx.session.className}.pdf`,
+      }, {
+        caption: `<i>📌${ctx.session.className} guruhining dars jadvali\n\nBoshqa guruh dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i>
+        
+        `,
+        parse_mode: "HTML",
+      });
+      fs.unlinkSync(file);
+    } else {
+      ctx.replyWithHTML("<b>❌Dars jadvali topilmadi. Iltimos, gurh nomini to'g'ri kiritganingizga ishonch hosil qilib, qaytadan urinib ko'ring!</b>");
+    }
   } else {
     ctx.replyWithHTML("<b>❌Noto'g'ri formatda kiritdingiz. \n\nIltimos, qaytadan urinib ko'ring!</b>");
     //exit from scene
