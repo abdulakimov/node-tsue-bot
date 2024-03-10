@@ -49,14 +49,13 @@ classNameScene.on("text", async (ctx) => {
       timetable({ className: ctx.session.className });
 
     let file = `./sources/${ctx.session.className}.pdf`;
+    let dateTimeNow = new Date().toLocaleString();
 
     if (fs.existsSync(file)) {
       ctx.replyWithDocument({
         source: `./sources/${ctx.session.className}.pdf`,
       }, {
-        caption: `<i>📌${ctx.session.className} guruhining dars jadvali\n\nBoshqa guruh dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i>
-        
-        `,
+        caption: `<i>📌${ctx.session.className} guruhining dars jadvali\n\nBoshqa guruh dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i> \n\n🕒${dateTimeNow} `,
         parse_mode: "HTML",
       });
       fs.unlinkSync(file);
