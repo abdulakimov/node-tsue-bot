@@ -55,7 +55,7 @@ classNameScene.on("text", async (ctx) => {
       ctx.replyWithDocument({
         source: `./sources/${ctx.session.className}.pdf`,
       }, {
-        caption: `<i>📌${ctx.session.className} guruhining dars jadvali\n\nBoshqa guruh dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i> \n\n<b>🕒Sana: ${dateTimeNow}</b>`,
+        caption: `<i>📌${ctx.session.className} guruhining dars jadvali\n\nBoshqa guruh dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i> \n\n<b>Sana: ${dateTimeNow}</b>`,
         parse_mode: "HTML",
       });
     } else {
