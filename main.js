@@ -50,7 +50,7 @@ classNameScene.on("text", async (ctx) => {
       caption: `<i>📌${ctx.session.className} guruhining dars jadvali\n\nBoshqa guruh dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i>`,
       parse_mode: "HTML",
     })
-    ctx.deleteMessage(ctx.message.message_id + 1);
+    
   } else {
     ctx.replyWithHTML("<b>❌Noto'g'ri formatda kiritdingiz. \n\nIltimos, qaytadan urinib ko'ring!</b>");
   }
