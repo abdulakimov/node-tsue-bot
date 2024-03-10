@@ -1,3 +1,4 @@
+import fs from "fs";
 import { Telegraf, session, Scenes } from "telegraf";
 import timetable from "./middlewares/timetable.js";
 import mongoose from "mongoose";
@@ -11,8 +12,9 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const classNameScene = new Scenes.BaseScene("classNameScene");
 
 classNameScene.enter((ctx) => {
-  ctx.replyWithHTML(`<b>Qaysi guruhning dars jadvalini bilmoqchisiz? \n\n📌Eslatma: </b>\n<i>Guruhingizni "ST-63" kabi yozing!</i>`, {
+  ctx.replyWithHTML(`<b>Qaysi guruhning dars jadvalini bilmoqchisiz? \n\n📌Eslatma: </b>\n<i>Guruhingizni <b>ST-63</b> kabi qo'shtirnoqlarsiz yozing!</i>`, {
     reply_markup: {
+
       inline_keyboard: [
         [
           {
@@ -32,9 +34,11 @@ classNameScene.leave((ctx) => {
   }
 });
 
-classNameScene.on("text", async (ctx) => {
+const menuItems = ["📅 Dars jadvali", "📞 Aloqa", "📝 Ma'lumot", "📊 Statistika"];
 
-  ctx.session.className = ctx.message.text;
+classNameScene.on("text", async (ctx) => {
+  if (!menuItems.includes(ctx.message.text))
+    ctx.session.className = ctx.message.text;
 
   console.log(ctx.session.className);
   //check if className is like AA-00 or Aa-00 or aa-00 or aA-00 or AAA-00 or AAa-00 or aAA-00 or AaA-00 or aaa-00
@@ -42,17 +46,24 @@ classNameScene.on("text", async (ctx) => {
   if (classNameRegex.test(ctx.session.className)) {
     ctx.scene.leave();
     await
-      timetable({ className: ctx.session.className })
+      timetable({ className: ctx.session.className });
 
-    ctx.replyWithDocument({
-      source: `./sources/${ctx.session.className}.pdf`,
-    }, {
-      caption: `<i>📌${ctx.session.className} guruhining dars jadvali\n\nBoshqa guruh dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i>`,
-      parse_mode: "HTML",
-    })
-    ctx.deleteMessage(ctx.message.message_id + 1);
+    let file = `./sources/${ctx.session.className}.pdf`;
+
+    if (fs.existsSync(file)) {
+      ctx.replyWithDocument({
+        source: file,
+      }, {
+        caption: `<i>📌${ctx.session.className} guruhining dars jadvali\n\nBoshqa guruh dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i>`,
+        parse_mode: "HTML",
+      })
+    } else {
+      ctx.replyWithHTML("<b>❌Dars jadvali topilmadi. \n\nIltimos, guruh nomini to'g'ri kiritganingizga ishonch hosil qilib, qaytadan urinib ko'ring!</b>");
+    }
   } else {
     ctx.replyWithHTML("<b>❌Noto'g'ri formatda kiritdingiz. \n\nIltimos, qaytadan urinib ko'ring!</b>");
+    //exit from scene
+    ctx.scene.leave();
   }
 
 });
@@ -62,7 +73,7 @@ const stage = new Scenes.Stage([classNameScene]);
 bot.use(stage.middleware());
 
 bot.on("message", async (ctx) => {
-  const channel = "@misterxurshidbek";
+  const channel = process.env.CHANNEL;
   const chatMember = await ctx.telegram.getChatMember(channel, ctx.message.from.id);
   const isSubscribed = ["creator", "administrator", "member"].includes(chatMember.status);
 
@@ -180,7 +191,7 @@ bot.on("message", async (ctx) => {
 });
 
 bot.action("check", async (ctx) => {
-  const channel = "@misterxurshidbek";
+  const channel = process.env.CHANNEL;
   const chatMember = await ctx.telegram.getChatMember(channel, ctx.from.id);
   const isSubscribed = await ["creator", "administrator", "member"].includes(chatMember.status);
 

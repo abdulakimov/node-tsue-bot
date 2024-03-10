@@ -32,19 +32,26 @@ async function timetable({ className }) {
         //get the element by class name and chek if it is exist or not
         const element = await select(page).getElement(`a:contains(${className.toUpperCase()})`);
 
-        //click to the element
-        await element.click();
+
+        // click to the element
+        if (element.handle !== undefined) {
+            await element?.click();
+        } else {
+            console.log("element not found");
+            return;
+        }
+
 
         //delay to 1 second
-        await delay(400);
+        // await delay(400);
 
-        // take pdf and save it to ../source folder
-        await page.pdf({ path: `./sources/${className}.pdf`, pageRanges: '1', printBackground: true, width: '800px', height: '800px' });
+        // // take pdf and save it to ../source folder
+        // await page.pdf({ path: `./sources/${className}.pdf`, pageRanges: '1', printBackground: true, width: '800px', height: '800px' });
 
-        console.log('timetable created');
+        // console.log('timetable created');
 
     } catch (error) {
-        console.error("Error: ", error);
+        console.log("Error: ", error);
         await browser.close();
     }
 }
