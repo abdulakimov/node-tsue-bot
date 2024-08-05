@@ -1,10 +1,22 @@
 import fs from "fs";
+import express from "express";
 import { Telegraf, session, Scenes } from "telegraf";
 import timetable from "./middlewares/timetable.js";
 import mongoose from "mongoose";
 import { config } from "dotenv";
 import Users from "./models/userModel.js";
 config();
+
+const app = express();
+
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
+app.listen(process.env.PORT || 3000, () => {
+  console.log(`Server is running on port ${process.env.PORT || 3000}`);
+}
+);
 
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
