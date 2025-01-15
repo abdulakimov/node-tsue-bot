@@ -1,11 +1,13 @@
 import fs from "fs";
 import express from "express";
 import { Telegraf, session, Scenes } from "telegraf";
-import timetable from "./middlewares/timetable.js";
 import mongoose from "mongoose";
 import { config } from "dotenv";
 import Users from "./models/userModel.js";
-config();
+import {timetableForStudent, timetableForTeacher} from "./middlewares/timetable.js";
+
+config()
+
 
 const app = express();
 
@@ -19,14 +21,33 @@ app.listen(process.env.PORT || 3000, () => {
 );
 
 
-const bot = new Telegraf(process.env.BOT_TOKEN);
+const bot = new Telegraf("7028762356:AAG2qCnrzgaa99LZJsB4VisIUyKNaMMmUVc");
+
 
 const classNameScene = new Scenes.BaseScene("classNameScene");
+const teacherNameScene = new Scenes.BaseScene("teacherNameScene");
+
 
 classNameScene.enter((ctx) => {
   ctx.replyWithHTML(`<b>Qaysi guruhning dars jadvalini bilmoqchisiz? \n\n📌Eslatma: </b>\n<i>Guruhingizni <b>ST-63</b> kabi yozing!</i>`, {
     reply_markup: {
 
+      inline_keyboard: [
+        [
+          {
+            text: "🔙 Orqaga",
+            callback_data: "back",
+          }
+        ]
+      ],
+    },
+
+  });
+});
+
+teacherNameScene.enter((ctx) => {
+  ctx.replyWithHTML(`<b>Qaysi o'qituvchining dars jadvalini bilmoqchisiz? \n\n📌Eslatma: </b>\n<i>Ismni saytda qanday bo'lsa shunday yozing!</i>`, {
+    reply_markup: {
       inline_keyboard: [
         [
           {
@@ -46,6 +67,12 @@ classNameScene.leave((ctx) => {
   }
 });
 
+teacherNameScene.leave((ctx) => {
+  if (ctx.session.teacherName !== undefined) {
+    ctx.replyWithHTML(`<b>${ctx.session.teacherName}ning dars jadvali yuklanmoqda. \n\nIltimos kutib turing...</b>`);
+  }
+});
+
 const menuItems = ["📅 Dars jadvali", "📞 Aloqa", "📝 Ma'lumot", "📊 Statistika"];
 
 classNameScene.on("text", async (ctx) => {
@@ -57,7 +84,7 @@ classNameScene.on("text", async (ctx) => {
   if (classNameRegex.test(ctx.session.className) && !menuItems.includes(ctx.message.text)) {
     ctx.scene.leave();
     await
-      timetable({ className: ctx.session.className });
+      timetableForStudent({ className: ctx.session.className });
 
     let file = `./sources/${ctx.session.className}.pdf`;
     let dateTimeNow = new Date().toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" });
@@ -80,8 +107,40 @@ classNameScene.on("text", async (ctx) => {
 
 });
 
+teacherNameScene.on("text", async (ctx) => {
+  ctx.session.teacherName = ctx.message.text;
+
+  console.log(ctx.session.teacherName);
+
+  // const teacherNameRegax = /^[a-zA-Z]{1,3}-\d{2}$/;
+  if (true) {
+    ctx.scene.leave();
+    await
+        timetableForTeacher({ teacherName: ctx.session.teacherName });
+
+    let file = `./sources/${ctx.session.teacherName}.pdf`;
+    let dateTimeNow = new Date().toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" });
+
+    if (fs.existsSync(file)) {
+      ctx.replyWithDocument({
+        source: `./sources/${ctx.session.teacherName}.pdf`,
+      }, {
+        caption: `<i>📌${ctx.session.teacherName}ning dars jadvali\n\nBoshqa dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i> \n\n<b>Sana: ${dateTimeNow.replaceAll("/", "-")}</b>`,
+        parse_mode: "HTML",
+      });
+    } else {
+      ctx.replyWithHTML("<b>❌Dars jadvali topilmadi. Iltimos, ismni to'g'ri kiritganingizga ishonch hosil qilib, qaytadan urinib ko'ring!</b>");
+    }
+  } else {
+    ctx.replyWithHTML("<b>❌Noto'g'ri formatda kiritdingiz. \n\nIltimos, qaytadan urinib ko'ring!</b>");
+    //exit from scene
+    ctx.scene.leave();
+  }
+
+});
+
 bot.use(session());
-const stage = new Scenes.Stage([classNameScene]);
+const stage = new Scenes.Stage([classNameScene, teacherNameScene]);
 bot.use(stage.middleware());
 
 bot.on("message", async (ctx) => {
@@ -136,8 +195,24 @@ bot.on("message", async (ctx) => {
       }
 
       if (ctx.message.text === "📅 Dars jadvali") {
-        ctx.scene.enter("classNameScene");
+        // ctx.scene.enter("classNameScene");
+        ctx.replyWithHTML("Qanday dars jadvali olmoqchisiz?", {
+          reply_markup: {
+            resize_keyboard: true,
+            keyboard: [
+              ["🧑‍🎓 Guruh jadvali", "👨‍🏫 O'qituvchi jadvali"],
+                ["🔙 Orqaga"],
+            ],
+            },
+        })
       }
+
+        if (ctx.message.text === "🧑‍🎓 Guruh jadvali") {
+            ctx.scene.enter("classNameScene");
+        }
+        if (ctx.message.text === "👨‍🏫 O'qituvchi jadvali") {
+            ctx.scene.enter("teacherNameScene");
+        }
 
       if (ctx.message.text === "📞 Aloqa") {
         await ctx.replyWithHTML(`<i>🧑‍💻Shikoyatlar, dasturdagi xatoliklar va taklif uchun quyidagi manzillar orqali bog'lanishigiz mumkin:\n\n☎️ Telefon: +998-99-768-30-09\n\n✈️ Telegram: @mister_xurshidbey</i>`, {
@@ -162,7 +237,7 @@ bot.on("message", async (ctx) => {
       }
 
       if (ctx.message.text === "📝 Ma'lumot") {
-        await ctx.replyWithHTML(`<i>📌 Ushbu bot Raqamli Iqtisodiyot Fakulteti uchun maxsus yaratilgan!\n\n🧑‍💻 Dasturchi: @mister_xurshidbey\n\n📢 Kanal: @rif_tdiu</i>`, {
+        await ctx.replyWithHTML(`<i>📌 Ushbu bot Raqamli Iqtisodiyot Fakulteti uchun maxsus yaratilgan!\n\n🧑‍💻 Dasturchi: @mister_xurshidbey\n\n📢 Kanal: @tsueitclub</i>`, {
           reply_markup: {
             inline_keyboard: [
               [
@@ -175,6 +250,18 @@ bot.on("message", async (ctx) => {
           },
 
         })
+      }
+
+      if (ctx.message.text === "🔙 Orqaga") {
+        await ctx.replyWithHTML(`<b>Assalomu alaykum <a href='tg://user?id=${ctx.from.id}'>${ctx.from.first_name}</a> 😊\n \nSizga yordam bera olishim uchun pastdagi buyruqlardan birini tanlang 👇</b>`, {
+          reply_markup: {
+            resize_keyboard: true,
+            keyboard: [
+              ["📅 Dars jadvali", "📞 Aloqa"],
+              ["📝 Ma'lumot", "📊 Statistika"],
+            ],
+          }
+        });
       }
 
       if (ctx.message.text === "📊 Statistika") {
