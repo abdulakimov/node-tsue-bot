@@ -73,68 +73,84 @@ teacherNameScene.leave((ctx) => {
 
 const menuItems = ["📅 Dars jadvali", "📞 Aloqa", "📝 Ma'lumot", "📊 Statistika"];
 
+const requestQueue = [];
+let isProcessing = false;
+
+async function processQueue() {
+  if (isProcessing || requestQueue.length === 0) {
+    return;
+  }
+
+  isProcessing = true;
+  const { ctx, type, name } = requestQueue.shift();
+
+  try {
+    if (type === "class") {
+      await timetableForStudent({ className: name });
+      let file = `./sources/${name}.pdf`;
+      let dateTimeNow = new Date().toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" });
+
+      if (fs.existsSync(file)) {
+        ctx.replyWithDocument({
+          source: file,
+        }, {
+          caption: `<i>📌${name} guruhining dars jadvali\n\nBoshqa guruh dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i> \n\n<b>Sana: ${dateTimeNow.replaceAll("/", "-")}</b>`,
+          parse_mode: "HTML",
+        });
+      } else {
+        ctx.replyWithHTML("<b>❌Dars jadvali topilmadi. Iltimos, guruh nomini to'g'ri kiritganingizga ishonch hosil qilib, qaytadan urinib ko'ring!</b>");
+      }
+    } else if (type === "teacher") {
+      await timetableForTeacher({ teacherName: name });
+      let file = `./sources/${name}.pdf`;
+      let dateTimeNow = new Date().toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" });
+
+      if (fs.existsSync(file)) {
+        ctx.replyWithDocument({
+          source: file,
+        }, {
+          caption: `<i>📌${name}ning dars jadvali\n\nBoshqa dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i> \n\n<b>Sana: ${dateTimeNow.replaceAll("/", "-")}</b>`,
+          parse_mode: "HTML",
+        });
+      } else {
+        ctx.replyWithHTML("<b>❌Dars jadvali topilmadi. Iltimos, ismni to'g'ri kiritganingizga ishonch hosil qilib, qaytadan urinib ko'ring!</b>");
+      }
+    }
+  } catch (error) {
+    console.log("Error: ", error);
+  } finally {
+    isProcessing = false;
+    processQueue();
+  }
+}
+
 classNameScene.on("text", async (ctx) => {
   ctx.session.className = ctx.message.text;
-
   console.log(ctx.session.className);
 
   const classNameRegex = /^[a-zA-Z]{1,3}-\d{2}$/;
   if (classNameRegex.test(ctx.session.className) && !menuItems.includes(ctx.message.text)) {
     ctx.scene.leave();
-    await
-      timetableForStudent({ className: ctx.session.className });
-
-    let file = `./sources/${ctx.session.className}.pdf`;
-    let dateTimeNow = new Date().toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" });
-
-    if (fs.existsSync(file)) {
-      ctx.replyWithDocument({
-        source: `./sources/${ctx.session.className}.pdf`,
-      }, {
-        caption: `<i>📌${ctx.session.className} guruhining dars jadvali\n\nBoshqa guruh dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i> \n\n<b>Sana: ${dateTimeNow.replaceAll("/", "-")}</b>`,
-        parse_mode: "HTML",
-      });
-    } else {
-      ctx.replyWithHTML("<b>❌Dars jadvali topilmadi. Iltimos, guruh nomini to'g'ri kiritganingizga ishonch hosil qilib, qaytadan urinib ko'ring!</b>");
-    }
+    requestQueue.push({ ctx, type: "class", name: ctx.session.className });
+    processQueue();
   } else {
     ctx.replyWithHTML("<b>❌Noto'g'ri formatda kiritdingiz. \n\nIltimos, qaytadan urinib ko'ring!</b>");
-    //exit from scene
     ctx.scene.leave();
   }
-
 });
 
 teacherNameScene.on("text", async (ctx) => {
   ctx.session.teacherName = ctx.message.text;
-
   console.log(ctx.session.teacherName);
 
-  // const teacherNameRegax = /^[a-zA-Z]{1,3}-\d{2}$/;
   if (true) {
     ctx.scene.leave();
-    await
-        timetableForTeacher({ teacherName: ctx.session.teacherName });
-
-    let file = `./sources/${ctx.session.teacherName}.pdf`;
-    let dateTimeNow = new Date().toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" });
-
-    if (fs.existsSync(file)) {
-      ctx.replyWithDocument({
-        source: `./sources/${ctx.session.teacherName}.pdf`,
-      }, {
-        caption: `<i>📌${ctx.session.teacherName}ning dars jadvali\n\nBoshqa dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i> \n\n<b>Sana: ${dateTimeNow.replaceAll("/", "-")}</b>`,
-        parse_mode: "HTML",
-      });
-    } else {
-      ctx.replyWithHTML("<b>❌Dars jadvali topilmadi. Iltimos, ismni to'g'ri kiritganingizga ishonch hosil qilib, qaytadan urinib ko'ring!</b>");
-    }
+    requestQueue.push({ ctx, type: "teacher", name: ctx.session.teacherName });
+    processQueue();
   } else {
     ctx.replyWithHTML("<b>❌Noto'g'ri formatda kiritdingiz. \n\nIltimos, qaytadan urinib ko'ring!</b>");
-    //exit from scene
     ctx.scene.leave();
   }
-
 });
 
 bot.use(session());
