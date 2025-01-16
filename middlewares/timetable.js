@@ -1,5 +1,6 @@
-import puppeteer from "puppeteer";
+// import puppeteer from "puppeteer";
 import select from "puppeteer-select";
+const chromium = require('chrome-aws-lambda');
 
 export async function timetableForStudent({ className }) {
     let browser;
@@ -11,10 +12,17 @@ export async function timetableForStudent({ className }) {
 
     try {
         // launch browser
-        browser = await puppeteer.launch({
-            headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        // browser = await puppeteer.launch({
+        //     headless: true,
+        //     args: ['--no-sandbox', '--disable-setuid-sandbox']
+        // });
+
+        browser = await chromium.puppeteer.launch({
+            args: chromium.args,
+            executablePath: await chromium.executablePath,
+            headless: chromium.headless,
         });
+
         const page = await browser.newPage();
 
         // set viewport
