@@ -11,16 +11,21 @@ config()
 
 const app = express();
 
+
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-app.listen(process.env.PORT || 3000, () => {
+const HOST = process.env.HOST || '0.0.0.0';
+
+app.listen(process.env.PORT || 3000, HOST,() => {
   console.log("Server is running...");
 });
 
 const bot = new Telegraf("7028762356:AAG2qCnrzgaa99LZJsB4VisIUyKNaMMmUVc");
+bot.telegram.setWebhook(`https://node-tsue-bot.vercel.app/bot7028762356:AAG2qCnrzgaa99LZJsB4VisIUyKNaMMmUVc`);
 
+app.use(bot.webhookCallback(`/bot7028762356:AAG2qCnrzgaa99LZJsB4VisIUyKNaMMmUVc`));
 
 const classNameScene = new Scenes.BaseScene("classNameScene");
 const teacherNameScene = new Scenes.BaseScene("teacherNameScene");
@@ -96,6 +101,7 @@ async function processQueue() {
         }, {
           caption: `<i>📌${name} guruhining dars jadvali\n\nBoshqa guruh dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i> \n\n<b>Sana: ${dateTimeNow.replaceAll("/", "-")}</b>`,
           parse_mode: "HTML",
+
         });
       } else {
         ctx.replyWithHTML("<b>❌Dars jadvali topilmadi. Iltimos, guruh nomini to'g'ri kiritganingizga ishonch hosil qilib, qaytadan urinib ko'ring!</b>");
@@ -111,6 +117,7 @@ async function processQueue() {
         }, {
           caption: `<i>📌${name}ning dars jadvali\n\nBoshqa dars jadvalini olish uchun qaytadan \n"📅 Dars jadvali" tugmasini bosing!</i> \n\n<b>Sana: ${dateTimeNow.replaceAll("/", "-")}</b>`,
           parse_mode: "HTML",
+
         });
       } else {
         ctx.replyWithHTML("<b>❌Dars jadvali topilmadi. Iltimos, ismni to'g'ri kiritganingizga ishonch hosil qilib, qaytadan urinib ko'ring!</b>");
